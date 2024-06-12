@@ -17,31 +17,44 @@ def get_env_vars(env_vars: list) -> dict:
     @parameter env_vars : list - List containing keys of environment variables
     @returns dict - A dictionary of environment variables
     """
-    env_vars_dict = {}
-    for var in env_vars:
+
+    env_vars = {}
+    for var in ENV_VARS:
         value = os.environ.get(var, "")
         if value == "":
-            env_vars_dict[var] = value
-        env_vars_dict[var] = value
-    return env_vars_dict
+            env_vars[var] = value
+            # st.error(f"{var} not set", icon="🚨")
+            # sys.exit(f"{var} not set")
+        env_vars[var] = value
+
+    return env_vars
+
 
 def display_chat_messages() -> None:
     """Print message history
     @returns None
     """
     for message in st.session_state.messages:
-        with st.sidebar:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                if "images" in message:
-                    for i in range(0, len(message["images"]), NUM_IMAGES_PER_ROW):
-                        cols = st.columns(NUM_IMAGES_PER_ROW)
-                        for j in range(NUM_IMAGES_PER_ROW):
-                            if i + j < len(message["images"]):
-                                cols[j].image(message["images"][i + j], width=200)
+        with st.sidebar.chat_message(message["role"]):
+            st.markdown(message["content"])
+            if "images" in message:
+                for i in range(0, len(message["images"]), NUM_IMAGES_PER_ROW):
+                    cols = st.sidebar.columns(NUM_IMAGES_PER_ROW)
+                    for j in range(NUM_IMAGES_PER_ROW):
+                        if i + j < len(message["images"]):
+                            cols[j].image(message["images"][i + j], width=200)
+
 
 # Environment variables
 env_vars = get_env_vars(ENV_VARS)
+# url = env_vars["WEAVIATE_URL"]
+# api_key = env_vars["WEAVIATE_API_KEY"]
+# openai_key = env_vars["OPENAI_KEY"]
+
+# Check keys
+# if url == "" or api_key == "" or openai_key == "":
+#     st.error(f"Environment variables not set", icon="🚨")
+#     sys.exit("Environment variables not set")
 
 # Custom CSS to adjust the sidebar width
 st.markdown(
@@ -75,6 +88,7 @@ with st.sidebar:
     )
     st.header("Workplace: ")
 
+st.divider()
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -83,16 +97,17 @@ if "messages" not in st.session_state:
 # Display chat messages from history on app rerun
 display_chat_messages()
 
+st.divider()
+
 # Greet user
 with st.sidebar:
     if not st.session_state.greetings:
-        with st.chat_message("assistant"):
+        with st.sidebar.chat_message("assistant"):
             intro = "Hey, Docker dev! Time to kick your builds into high gear with AImStream! It's like having a jetpack strapped to your Docker images – they'll be soaring to completion before you can say 'dockerize me, Captain!'"
             st.markdown(intro)
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": intro})
             st.session_state.greetings = True
-
 # Example prompts
 with st.sidebar:
     example_prompts = [
@@ -108,37 +123,27 @@ with st.sidebar:
         button_pressed = example_prompts[1]
     elif button_cols[2].button(example_prompts[2]):
         button_pressed = example_prompts[2]
-st.divider()
 
-# Handle prompt input and responses
-if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create?") or button_pressed):
-    # Display user message in chat message container
-    with st.sidebar:
-        with st.chat_message("user"):
+with st.sidebar:
+    if prompt := (st.chat_input("What type of IMAGE would you like to create?") or button_pressed):
+        # Display user message in chat message container
+        with st.sidebar.chat_message("user"):
             st.markdown(prompt)
             # Add user message to chat history
             st.session_state.messages.append({"role": "user", "content": prompt})
 
-    prompt = prompt.replace('"', "").replace("'", "")
+        prompt = prompt.replace('"', "").replace("'", "")
 
-    images = []
-    if prompt != "":
-        query = prompt.strip().lower()
-        # Here you can handle the prompt processing and response generation
-        response_content = "response content (using AI-generated result to change this)"
-        with st.sidebar:
-            with st.chat_message("assistant"):
-                st.markdown(response_content)
+        images = []
+        if prompt != "":
+            query = prompt.strip().lower()
+            # gql = mode_descriptions[mode][1].format(input=query, limit_card=limit)
+            # df = conn.query(gql, ttl=None)    
+            # response = ""
+            with st.sidebar.chat_message("assistant"):
+                st.markdown("response content (using AI-generated result to change this)")
                 st.session_state.messages.append(
-                    {"role": "assistant", "content": prompt+response_content, "images": images}
+                    {"role": "assistant", "content": "response content (using AI-generated result to change this)", "images": images}
                 )
-            
-        
-        # Display response in the main body as a code block
-        st.subheader("Response")
-        st.code(prompt+response_content, language="bash")
-        # Display response in the main body as well
-        st.subheader("Response change ")
-        st.markdown(prompt+response_content)
-        # Rerun the app to refresh the state
-        
+                st.rerun()
+                
