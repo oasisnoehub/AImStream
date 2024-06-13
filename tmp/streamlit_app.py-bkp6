@@ -23,28 +23,23 @@ def get_env_vars(env_vars: list) -> dict:
         env_vars_dict[var] = value
     return env_vars_dict
 
-def display_latest_chat_messages() -> None:
-    """Print the latest question and response in the sidebar
+def display_chat_messages() -> None:
+    """Print message history
     @returns None
     """
-    if len(st.session_state.messages) >= 2:
-        user_message = st.session_state.messages[-2]
-        assistant_message = st.session_state.messages[-1]
-
+    for message in st.session_state.messages:
         with st.sidebar:
-            with st.chat_message(user_message["role"]):
-                st.markdown(user_message["content"])
-            with st.chat_message(assistant_message["role"]):
-                st.markdown(assistant_message["content"])
-                if "images" in assistant_message:
-                    for i in range(0, len(assistant_message["images"]), NUM_IMAGES_PER_ROW):
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                if "images" in message:
+                    for i in range(0, len(message["images"]), NUM_IMAGES_PER_ROW):
                         cols = st.columns(NUM_IMAGES_PER_ROW)
                         for j in range(NUM_IMAGES_PER_ROW):
-                            if i + j < len(assistant_message["images"]):
-                                cols[j].image(assistant_message["images"][i + j], width=200)
+                            if i + j < len(message["images"]):
+                                cols[j].image(message["images"][i + j], width=200)
 
-def display_main_body_questions() -> None:
-    """Print user questions in the main body
+def display_main_body_messages() -> None:
+    """Print message history in the main body
     @returns None
     """
     st.write("<div class='flowchart'>", unsafe_allow_html=True)
@@ -118,12 +113,12 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.greetings = False
 
-# Display the latest chat messages in the sidebar
-display_latest_chat_messages()
+# Display chat messages from history on app rerun
+display_chat_messages()
 
-# Display user questions in the main body
-st.header("Layer Requests:")
-display_main_body_questions()
+# Display messages in the main body
+st.header("Chat History")
+display_main_body_messages()
 
 # Greet user
 with st.sidebar:
@@ -151,6 +146,12 @@ with st.sidebar:
     elif button_cols[2].button(example_prompts[2]):
         button_pressed = example_prompts[2]
 
+# User Configuration Sidebar
+with st.sidebar:
+    mode = st.radio(
+        "Basic Layer", options=["Git", "SVN", "Centos7", "Ubuntu"], index=3
+    )
+
 st.divider()
 
 # Handle prompt input and responses
@@ -176,7 +177,7 @@ if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create
                     {"role": "assistant", "content": response_content, "images": images}
                 )
 
-        # Display user question in the main body
+        # Display response in the main body
         st.write(f"<div class='block user'><strong>User:</strong> {prompt}</div>", unsafe_allow_html=True)
         st.write("<div class='line'></div>", unsafe_allow_html=True)
 

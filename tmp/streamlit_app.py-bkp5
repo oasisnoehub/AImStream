@@ -23,35 +23,31 @@ def get_env_vars(env_vars: list) -> dict:
         env_vars_dict[var] = value
     return env_vars_dict
 
-def display_latest_chat_messages() -> None:
-    """Print the latest question and response in the sidebar
+def display_chat_messages() -> None:
+    """Print message history in the sidebar
     @returns None
     """
-    if len(st.session_state.messages) >= 2:
-        user_message = st.session_state.messages[-2]
-        assistant_message = st.session_state.messages[-1]
-
+    for message in st.session_state.messages:
         with st.sidebar:
-            with st.chat_message(user_message["role"]):
-                st.markdown(user_message["content"])
-            with st.chat_message(assistant_message["role"]):
-                st.markdown(assistant_message["content"])
-                if "images" in assistant_message:
-                    for i in range(0, len(assistant_message["images"]), NUM_IMAGES_PER_ROW):
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+                if "images" in message:
+                    for i in range(0, len(message["images"]), NUM_IMAGES_PER_ROW):
                         cols = st.columns(NUM_IMAGES_PER_ROW)
                         for j in range(NUM_IMAGES_PER_ROW):
-                            if i + j < len(assistant_message["images"]):
-                                cols[j].image(assistant_message["images"][i + j], width=200)
+                            if i + j < len(message["images"]):
+                                cols[j].image(message["images"][i + j], width=100)
 
-def display_main_body_questions() -> None:
-    """Print user questions in the main body
+def display_main_body_messages() -> None:
+    """Display only the latest question and answer in the main body
     @returns None
     """
     st.write("<div class='flowchart'>", unsafe_allow_html=True)
-    for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.write(f"<div class='block user' style='background-color:black'><strong>User:</strong> {message['content']}</div>", unsafe_allow_html=True)
-            st.write("<div class='line'></div>", unsafe_allow_html=True)
+    if len(st.session_state.messages) >= 2:
+        user_message = st.session_state.messages[-2]
+        assistant_message = st.session_state.messages[-1]
+        if assistant_message["role"] == "assistant":
+            st.write(f"<div class='block assistant' style='background-color:black'><strong>Assistant:</strong><pre>{assistant_message['content']}</pre></div>", unsafe_allow_html=True)
     st.write("</div>", unsafe_allow_html=True)
 
 # Environment variables
@@ -118,12 +114,12 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.greetings = False
 
-# Display the latest chat messages in the sidebar
-display_latest_chat_messages()
+# Display chat messages from history on app rerun
+display_chat_messages()
 
-# Display user questions in the main body
-st.header("Layer Requests:")
-display_main_body_questions()
+# Display messages in the main body
+st.header("Chat History")
+display_main_body_messages()
 
 # Greet user
 with st.sidebar:
@@ -168,17 +164,52 @@ if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create
     if prompt != "":
         query = prompt.strip().lower()
         # Here you can handle the prompt processing and response generation
-        response_content = "response content (using AI-generated result to change this)"
+        code_block = ""
+
+        if prompt == "Build a CentOS 7 image with basic tools like Git, net-tools, and curl.":
+            code_block = '''FROM centos:7
+
+# Set the maintainer label
+LABEL maintainer="your_email@example.com"
+
+# Update the package index and install basic tools
+RUN yum -y update && \\
+    yum -y install git net-tools curl && \\
+    yum clean all
+
+# Set the working directory
+WORKDIR /root
+
+# Command to be executed when the container starts
+CMD ["bash"]
+            '''
+        else:
+            code_block = "No example code available for this prompt."
+
+        # Display "Sure" in the sidebar
         with st.sidebar:
             with st.chat_message("assistant"):
-                st.markdown(response_content)
+                st.markdown("Sure")
                 st.session_state.messages.append(
-                    {"role": "assistant", "content": response_content, "images": images}
+                    {"role": "assistant", "content": "Sure", "images": images}
                 )
 
-        # Display user question in the main body
-        st.write(f"<div class='block user'><strong>User:</strong> {prompt}</div>", unsafe_allow_html=True)
-        st.write("<div class='line'></div>", unsafe_allow_html=True)
+        # Clear main body messages and display only the latest question and answer
+        st.session_state.messages = st.session_state.messages[-2:]
 
+        # Display response in the main body
+        st.write(f"<div class='block assistant'><strong>Assistant:</strong></div>", unsafe_allow_html=True)
+        st.code(code_block, language='dockerfile')
+        edited_code = st.text_area("Edit the Dockerfile code below:", code_block, height=300, key="code_block")
+        
+
+        # Download button for Dockerfile
+        st.download_button(
+            label="Download Dockerfile",
+            data=edited_code,
+            file_name="Dockerfile",
+            mime="text/plain"
+        )
+        st.write("<div class='line'></div>", unsafe_allow_html=True)
         # Rerun to keep the state
         st.rerun()
