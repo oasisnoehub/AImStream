@@ -24,7 +24,7 @@ def get_env_vars(env_vars: list) -> dict:
     return env_vars_dict
 
 def display_chat_messages() -> None:
-    """Print message history in the sidebar
+    """Print message history
     @returns None
     """
     for message in st.session_state.messages:
@@ -39,15 +39,14 @@ def display_chat_messages() -> None:
                                 cols[j].image(message["images"][i + j], width=200)
 
 def display_main_body_messages() -> None:
-    """Display only the latest question and answer in the main body
+    """Print message history in the main body
     @returns None
     """
     st.write("<div class='flowchart'>", unsafe_allow_html=True)
-    if len(st.session_state.messages) >= 2:
-        user_message = st.session_state.messages[-2]
-        assistant_message = st.session_state.messages[-1]
-        if assistant_message["role"] == "assistant":
-            st.write(f"<div class='block assistant' style='background-color:black'><strong>Assistant:</strong><pre>{assistant_message['content']}</pre></div>", unsafe_allow_html=True)
+    for message in st.session_state.messages:
+        if message["role"] == "user":
+            st.write(f"<div class='block user' style='background-color:black'><strong>User:</strong> {message['content']}</div>", unsafe_allow_html=True)
+            st.write("<div class='line'></div>", unsafe_allow_html=True)
     st.write("</div>", unsafe_allow_html=True)
 
 # Environment variables
@@ -170,7 +169,7 @@ if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create
     if prompt != "":
         query = prompt.strip().lower()
         # Here you can handle the prompt processing and response generation
-        response_content = "Q: " + prompt + "<br> Response Content: docker build -t xxxx ."
+        response_content = "response content (using AI-generated result to change this)"
         with st.sidebar:
             with st.chat_message("assistant"):
                 st.markdown(response_content)
@@ -178,11 +177,8 @@ if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create
                     {"role": "assistant", "content": response_content, "images": images}
                 )
 
-        # Clear main body messages and display only the latest question and answer
-        st.session_state.messages = st.session_state.messages[-2:]
-
         # Display response in the main body
-        st.write(f"<div class='block assistant'><strong>Assistant:</strong><pre>{response_content}</pre></div>", unsafe_allow_html=True)
+        st.write(f"<div class='block user'><strong>User:</strong> {prompt}</div>", unsafe_allow_html=True)
         st.write("<div class='line'></div>", unsafe_allow_html=True)
 
         # Rerun to keep the state
