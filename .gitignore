@@ -80,4 +80,4 @@ crashlytics.properties
 crashlytics-build.properties
 
 # Stream user passwords
-.streamlit\secrets.toml
+.streamlit/secrets.toml
