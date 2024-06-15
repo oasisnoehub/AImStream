@@ -1,5 +1,9 @@
 import streamlit as st
+from streamlit_monaco import st_monaco
 from code_editor import code_editor
+from datetime import datetime
+import uuid
+import hmac
 import os
 
 from dotenv import load_dotenv
@@ -11,14 +15,13 @@ ENV_VARS = ["WEAVIATE_URL", "WEAVIATE_API_KEY", "OPENAI_KEY"]
 NUM_IMAGES_PER_ROW = 3
 
 # ================= Functions ===========
-
-# check login information
 def check_password():
     """Returns `True` if the user had a correct password."""
 
     def login_form():
         """Form with widgets to collect user information"""
         with st.form("Credentials"):
+            st.title("Welcome to AlmStream !")  # Title of the form.
             st.text_input("Username", key="username")
             st.text_input("Password", type="password", key="password")
             st.form_submit_button("Log in", on_click=password_entered)
@@ -92,14 +95,23 @@ def display_main_body_answers() -> None:
     @returns None
     """
     st.write("<div class='flowchart'>", unsafe_allow_html=True)
+    version = 0;
     for message in st.session_state.messages:
         if message["role"] == "assistant":
-            # Display user question in the Main body
-            response_dict = code_editor(message['content'],lang="docker")
-            st.write("<div class='line'></div>", unsafe_allow_html=True)
-            # st.write(f"<div class='block assistant' style='background-color:black'>{message['content']} </div>", unsafe_allow_html=True)
-            # st.write("<div class='line'></div>", unsafe_allow_html=True)
+            display_main_body_single_answer(message=message, version=version)
+            version = version + 1;
     st.write("</div>", unsafe_allow_html=True)
+
+def display_main_body_single_answer(message: list, version: int) -> None:
+    if message["role"] == "assistant":
+            # Generate a unique key using uuid
+            unique_key = str(uuid.uuid4())
+            # Display user question in the Main body
+            st.write(f"Version {version} -- UUID: {unique_key}")
+            code_editor(message['content'], lang="docker", key=unique_key)
+            st.write("<div class='line'></div>", unsafe_allow_html=True)
+    
+
 
 # user prompts handler
 def question_handler(prompt: str) -> str:
@@ -223,8 +235,11 @@ st.markdown(
 
 # =======================================
 # check for invalid password input values
+
 if not check_password():
     st.stop()
+
+# =======================================
 # Title
 st.title("AImStream")
 
