@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import uuid
 from streamlit_monaco import st_monaco
 from code_editor import code_editor
 from openai import OpenAI
@@ -72,10 +73,16 @@ def display_main_body_messages() -> None:
     @returns None
     """
     st.write("<div class='flowchart'>", unsafe_allow_html=True)
+    version = 0;
     for message in st.session_state.messages:
         if  message["role"] == "assistant":
+            # Generate a unique key using uuid
+            unique_key = str(uuid.uuid4())
+            # Display user question in the Main body
+            st.write(f"Version {version} -- UUID: {unique_key}")
             st.write(f"<div class='block assistant' style='background-color:black'><strong>Assistant:</strong> {message['content']}</div>", unsafe_allow_html=True)
             st.write("<div class='line'></div>", unsafe_allow_html=True)
+            version += 1;
     st.write("</div>", unsafe_allow_html=True)
 
 # Environment variables
@@ -152,7 +159,7 @@ if "messages" not in st.session_state:
 display_chat_messages()
 
 # Display all chat messages in the main body
-st.header("Chat History")
+st.header("Chain of Messages:")
 display_main_body_messages()
 
 # Greet user
