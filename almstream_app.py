@@ -1,11 +1,8 @@
 import streamlit as st
+import os
 from streamlit_monaco import st_monaco
 from code_editor import code_editor
-from datetime import datetime
-import uuid
-import hmac
-import os
-
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,42 +10,29 @@ load_dotenv()
 # Constants
 ENV_VARS = ["WEAVIATE_URL", "WEAVIATE_API_KEY", "OPENAI_KEY"]
 NUM_IMAGES_PER_ROW = 3
+# Initialize the client with local server settings
+client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+model_system_request = "From now on, act as a tech professional. Pay close attention to user questions. Provide outputs that users would regarding the input."
+# Functions
 
-# ================= Functions ===========
-def check_password():
-    """Returns `True` if the user had a correct password."""
-
-    def login_form():
-        """Form with widgets to collect user information"""
-        with st.form("Credentials"):
-            st.title("Welcome to AlmStream !")  # Title of the form.
-            st.text_input("Username", key="username")
-            st.text_input("Password", type="password", key="password")
-            st.form_submit_button("Log in", on_click=password_entered)
-
-    def password_entered():
-        """Checks whether a password entered by the user is correct."""
-        if st.session_state["username"] in st.secrets[
-            "passwords"
-        ] and hmac.compare_digest(
-            st.session_state["password"],
-            st.secrets.passwords[st.session_state["username"]],
-        ):
-            st.session_state["password_correct"] = True
-            del st.session_state["password"]  # Don't store the username or password.
-            del st.session_state["username"]
-        else:
-            st.session_state["password_correct"] = False
-
-    # Return True if the username + password is validated.
-    if st.session_state.get("password_correct", False):
-        return True
-
-    # Show inputs for username + password.
-    login_form()
-    if "password_correct" in st.session_state:
-        st.error("😕 User not known or password incorrect")
-    return False
+def get_openai_response_by_model(prompt: str, model_option: str) -> str:
+    print("User Prompt:" + prompt)
+    completion = client.chat.completions.create(
+        model=model_option,
+        messages=[
+            {"role": "system", "content": model_system_request},
+            {"role": "user", "content": prompt}
+        ],
+        temperature = 0.7,
+        max_tokens = -1
+    )
+    # print(completion.choices[0].message.content)
+    response_content = "DONE."
+    return response_content, completion.choices[0].message.content
+    # print("Response Content: " + tmp)
+    # return extract_dockerfile_content(tmp)
+    # return tmp
+  
 
 def get_env_vars(env_vars: list) -> dict:
     """Retrieve environment variables
@@ -63,127 +47,37 @@ def get_env_vars(env_vars: list) -> dict:
         env_vars_dict[var] = value
     return env_vars_dict
 
-# display_latest_chat_messages in the Sidebar
-def display_latest_chat_messages() -> None:
+def display_chat_messages() -> None:
     """Print the latest question and response in the sidebar
     @returns None
     """
     if len(st.session_state.messages) >= 2:
         user_message = st.session_state.messages[-2]
         assistant_message = st.session_state.messages[-1]
+
         with st.sidebar:
             with st.chat_message(user_message["role"]):
                 st.markdown(user_message["content"])
             with st.chat_message(assistant_message["role"]):
-                st.code(assistant_message["content"],language="docker")
+                st.markdown(assistant_message["content"])
+                if "images" in assistant_message:
+                    for i in range(0, len(assistant_message["images"]), NUM_IMAGES_PER_ROW):
+                        cols = st.columns(NUM_IMAGES_PER_ROW)
+                        for j in range(NUM_IMAGES_PER_ROW):
+                            if i + j < len(assistant_message["images"]):
+                                cols[j].image(assistant_message["images"][i + j], width=200)
 
-# display_main_body_questions
-def display_main_body_questions() -> None:
-    """Print user questions in the main body
+def display_main_body_messages() -> None:
+    """Print message history in the main body
     @returns None
     """
     st.write("<div class='flowchart'>", unsafe_allow_html=True)
     for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.write(f"<div class='block user' style='background-color:black'><strong>User:</strong> {message['content']}</div>", unsafe_allow_html=True)
+        if  message["role"] == "assistant":
+            st.write(f"<div class='block assistant' style='background-color:black'><strong>Assistant:</strong> {message['content']}</div>", unsafe_allow_html=True)
             st.write("<div class='line'></div>", unsafe_allow_html=True)
     st.write("</div>", unsafe_allow_html=True)
 
-# display_main_body_answers
-def display_main_body_answers() -> None:
-    """Print Assistant answers in the main body
-    @returns None
-    """
-    st.write("<div class='flowchart'>", unsafe_allow_html=True)
-    version = 0;
-    for message in st.session_state.messages:
-        if message["role"] == "assistant":
-            display_main_body_single_answer(message=message, version=version)
-            version = version + 1;
-    st.write("</div>", unsafe_allow_html=True)
-
-def display_main_body_single_answer(message: list, version: int) -> None:
-    if message["role"] == "assistant":
-            # Generate a unique key using uuid
-            unique_key = str(uuid.uuid4())
-            # Display user question in the Main body
-            st.write(f"Version {version} -- UUID: {unique_key}")
-            code_editor(message['content'], lang="docker", key=unique_key)
-            st.write("<div class='line'></div>", unsafe_allow_html=True)
-    
-
-
-# user prompts handler
-def question_handler(prompt: str) -> str:
-    """Handle different types of prompts and generate responses accordingly
-    @parameter prompt : str - User input prompt
-    @returns str - Response to the user prompt
-    """
-    if prompt != "":
-        query = prompt.strip().lower()
-
-        # Handle different prompts here
-        if query == "1":
-            response_content = "Here is the Dockerfile for setting up an Alpine Linux image with Nginx:"
-
-            code_block = '''
-            FROM alpine:latest
-
-            RUN apk update && apk add nginx
-
-            COPY nginx.conf /etc/nginx/nginx.conf
-
-            EXPOSE 80
-
-            CMD ["nginx", "-g", "daemon off;"]
-            '''
-        elif query == "2":
-            response_content = "Here is the Dockerfile for building a CentOS 7 image with Git, net-tools, and curl:"
-            code_block = '''
-            FROM centos:7
-
-            # Set the maintainer label
-            LABEL maintainer="your_email@example.com"
-
-            # Update the package index and install basic tools
-            RUN yum -y update && \\
-                yum -y install git net-tools curl && \\
-                yum clean all
-
-            # Set the working directory
-            WORKDIR /root
-
-            # Command to be executed when the container starts
-            CMD ["bash"]
-            '''
-        elif query == "3":
-            response_content = "Here is the Dockerfile for creating an Ubuntu 18.04 image with OpenJDK 11 and Maven:"
-            code_block = '''
-            FROM ubuntu:18.04
-
-            # Install OpenJDK 11 and Maven
-            RUN apt-get update && \\
-                apt-get install -y openjdk-11-jdk maven && \\
-                apt-get clean
-
-            # Set the working directory
-            WORKDIR /usr/src/app
-
-            # Copy the Maven project
-            COPY . .
-
-            # Build the application
-            RUN mvn clean install
-
-            # Command to be executed when the container starts
-            CMD ["java", "-jar", "app.jar"]
-            '''
-        else:
-            response_content = "No example code available for this prompt."
-            code_block = ""
-        return response_content, code_block  # Return the generated code block as a response
-
-# =======================================
 # Environment variables
 env_vars = get_env_vars(ENV_VARS)
 
@@ -192,8 +86,8 @@ st.markdown(
     """
     <style>
         [data-testid="stSidebar"] {
-            width: 40% !important;
-            min-width: 40% !important;
+            width: 50% !important;
+            min-width: 50% !important;
         }
         [data-testid="stSidebarNav"] {
             width: 50% !important;
@@ -222,28 +116,19 @@ st.markdown(
             background: #ffe0b2;
         }
         .line {
-            width: 2px; /* Width of the line */
-            height: 20px; /* Height of the line */
-            background-color: white; /* Color of the line */
-            margin: 0 auto; /* Top margin 0px, bottom margin 3px, horizontal margin 2px */
+            width: 2px;
+            height: 20px;
+            background: #ccc;
+            margin: 0 auto;
         }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-
-# =======================================
-# check for invalid password input values
-
-if not check_password():
-    st.stop()
-
-# =======================================
 # Title
 st.title("AImStream")
 
-# Sidebar
 with st.sidebar:
     st.title("💡 AImStream")
     st.subheader("Speed up Building!")
@@ -252,27 +137,23 @@ with st.sidebar:
     )
     model_option = st.selectbox(
         "Which Model would you like to be used?",
-        ("Local Ollama", "ChatGPT", "Mistral"),
-    index=None,
-    placeholder="Please Select Your Model ...",
+        ("lmstudio-ai/gemma-2b-it-GGUF", "TheBloke/Mistral-7B-Instruct-v0.2-GGUF","ChatGPT"),
+        index=None,
+        placeholder="Please Select Your Model ...",
     )
     st.header("Workplace: ")
 
-# Initialize chat history Sidebar)
+# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
     st.session_state.greetings = False
 
 # Display the latest chat messages in the sidebar
-display_latest_chat_messages()
+display_chat_messages()
 
-# Display user questions in the main body
-# st.header("Layer Requests:")
-# display_main_body_questions()
-
-# Display assistant answers in the main body
-st.header("Craft Producture:")
-display_main_body_answers()
+# Display all chat messages in the main body
+st.header("Chat History")
+display_main_body_messages()
 
 # Greet user
 with st.sidebar:
@@ -284,7 +165,7 @@ with st.sidebar:
             st.session_state.messages.append({"role": "assistant", "content": intro})
             st.session_state.greetings = True
 
-# Example Prompts
+# Example prompts
 with st.sidebar:
     example_prompts = [
         "Set up an Alpine Linux Docker image with Nginx web server.",
@@ -302,7 +183,7 @@ with st.sidebar:
 
 st.divider()
 
-# Prompt Input and Responses Handle
+# Handle prompt input and responses
 if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create?") or button_pressed):
     # Display user message in chat message container
     with st.sidebar:
@@ -312,19 +193,24 @@ if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create
             st.session_state.messages.append({"role": "user", "content": prompt})
 
     prompt = prompt.replace('"', "").replace("'", "")
-    # If user write prompt
+
+    images = []
     if prompt != "":
         query = prompt.strip().lower()
         # Here you can handle the prompt processing and response generation
-        # Prompt Handle
         # response_content = "response content (using AI-generated result to change this)"
-        response_content, code_block = question_handler(prompt)
-        # Diplay
+        response_content, code = get_openai_response_by_model(prompt=prompt, model_option=model_option)
         with st.sidebar:
             with st.chat_message("assistant"):
-                # st.code(code_block, language="docker")
+                st.markdown(response_content)
                 st.session_state.messages.append(
-                    {"role": "assistant", "content": code_block}
+                    {"role": "assistant", "content": code, "images": images}
                 )
+
+        # Display response in the main body
+        st.write(f"<div class='block user'><strong>User:</strong> {prompt}</div>", unsafe_allow_html=True)
+        st.write(f"<div class='block assistant'><strong>Assistant:</strong> {response_content}</div>", unsafe_allow_html=True)
+        st.write("<div class='line'></div>", unsafe_allow_html=True)
+
         # Rerun to keep the state
         st.rerun()
