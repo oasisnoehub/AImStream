@@ -1,20 +1,63 @@
 import streamlit as st
-import os
-import uuid
 from streamlit_monaco import st_monaco
 from code_editor import code_editor
 from openai import OpenAI
 from dotenv import load_dotenv
+import os
+import uuid
+import time
+import hmac
+
 
 load_dotenv()
 
 # Constants
 ENV_VARS = ["WEAVIATE_URL", "WEAVIATE_API_KEY", "OPENAI_KEY"]
 NUM_IMAGES_PER_ROW = 3
+
 # Initialize the client with local server settings
 client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
 model_system_request = "From now on, act as a tech professional. Pay close attention to user questions. Provide outputs that users would regarding the input."
 # Functions
+def check_password():
+    """Returns `True` if the user had a correct password."""
+
+    def login_form():
+        """Form with widgets to collect user information"""
+        with st.form("Credentials"):
+            st.title("Welcome to AlmStream !")  # Title of the form.
+            st.text_input("Username", key="username")
+            st.text_input("Password", type="password", key="password")
+            st.form_submit_button("Log in", on_click=password_entered)
+
+    def password_entered():
+        """Checks whether a password entered by the user is correct."""
+        if st.session_state["username"] in st.secrets[
+            "passwords"
+        ] and hmac.compare_digest(
+            st.session_state["password"],
+            st.secrets.passwords[st.session_state["username"]],
+        ):
+            st.session_state["password_correct"] = True
+            del st.session_state["password"]  # Don't store the username or password.
+            del st.session_state["username"]
+        else:
+            st.session_state["password_correct"] = False
+
+    # Return True if the username + password is validated.
+    if st.session_state.get("password_correct", False):
+        return True
+
+    # Show inputs for username + password.
+    login_form()
+    if "password_correct" in st.session_state:
+        st.error("😕 User not known or password incorrect")
+    return False
+
+def stream_data(content: str):
+    for word in content.split(" "):
+        yield word + " "
+        time.sleep(0.02)
 
 def get_openai_response_by_model(prompt: str, model_option: str) -> str:
     print("User Prompt:" + prompt)
@@ -132,7 +175,13 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+# =======================================
+# check for invalid password input values
 
+if not check_password():
+    st.stop()
+
+# =======================================
 # Title
 st.title("AImStream")
 
@@ -189,6 +238,8 @@ with st.sidebar:
         button_pressed = example_prompts[2]
 
 st.divider()
+
+
 
 # Handle prompt input and responses
 if prompt := (st.sidebar.chat_input("What type of IMAGE would you like to create?") or button_pressed):
