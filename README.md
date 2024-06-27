@@ -30,8 +30,7 @@ pip install -r requirements.txt
 
 Select open source models in the LM Studio and run the model as a backend server:
 
-![alt text](image-1.png)
-
+![image-1](https://github.com/oasisnoehub/AImStream/assets/80162775/244e46ab-4858-4d7b-ab71-65dd037077f7)
 
 
 ## Usage
@@ -42,7 +41,8 @@ streamlit run almstream_app.py
 ```
 2. Lgin in the local AImStream webapp at http://localhost:8501 :
 
-![alt text](image-2.png)
+<img width="825" alt="image-2" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f741b242-81e0-49a1-8672-6df0937bc200">
+
 
 ```shell
 username: admin
@@ -50,9 +50,13 @@ password: p@ssw0rdyyl
 ```
 3. Try it yourself 👇 !
 
-![alt text](image-3.png)
+<img width="1437" alt="image-3" src="https://github.com/oasisnoehub/AImStream/assets/80162775/1174986b-40cd-434c-862e-aa2418b0662b">
 
-![alt text](image-4.png)
+
+<img width="1416" alt="image-4" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f06b9aef-6e6d-4af7-92ae-1ab0e8b2f793">
+
+Here is the demo video : )
+
 
 ### Contributing
 We welcome contributions to AImStream! **If you are interested in this project and want to integrate AI into your workflow, please feel free to connect me for more details.**
