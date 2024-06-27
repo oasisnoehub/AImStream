@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ```
 5. Install the local LLMs models in the LM Studio:
 
-![alt text]([image.png](https://github.com/oasisnoehub/AImStream/blob/main/image.png))
+![alt text](https://github.com/oasisnoehub/AImStream/blob/main/image.png)
 
 Select open source models in the LM Studio and run the model as a backend server:
 
