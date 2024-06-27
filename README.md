@@ -41,7 +41,7 @@ streamlit run almstream_app.py
 ```
 2. Lgin in the local AImStream webapp at http://localhost:8501 :
 
-<img width="825" alt="image-2" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f741b242-81e0-49a1-8672-6df0937bc200">
+<img width="825" alt="image-2" style="border: .5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f741b242-81e0-49a1-8672-6df0937bc200">
 
 
 ```shell
