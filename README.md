@@ -25,7 +25,8 @@ pip install -r requirements.txt
 ```
 5. Install the local LLMs models in the LM Studio:
 
-![alt text](https://github.com/oasisnoehub/AImStream/blob/main/image.png)
+![image](https://github.com/oasisnoehub/AImStream/assets/80162775/9b738445-cac1-4759-af73-1bafe7c50553)
+
 
 Select open source models in the LM Studio and run the model as a backend server:
 
@@ -63,6 +64,9 @@ AImStream is released under the `MIT License`.
 Have questions or feedback? Reach out to us or create an issue in this repository.
 😊 Email me at: `yinyiling03@gmail.com`
 
+[![Rae Yin](https://img.shields.io/badge/Author-@YiLingYin03-gray.svg?colorA=gray&colorB=dodgergreen&logo=github)](https://github.com/oasisnoehub)
+
+[![Rae Yin](https://img.shields.io/badge/Gmail-yinyiling03@gmail.com-red?logo=gmail)]()
 
 And there you have it! AImStream is ready to help you supercharge your Docker image building process. Let's make software development a breeze together! 🚀💨
 
