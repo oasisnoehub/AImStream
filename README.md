@@ -41,7 +41,7 @@ streamlit run almstream_app.py
 ```
 2. Lgin in the local AImStream webapp at http://localhost:8501 :
 
-<img width="825" alt="image-2" style="border: .5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f741b242-81e0-49a1-8672-6df0937bc200">
+<img width="600" alt="image-2" style="border: .5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f741b242-81e0-49a1-8672-6df0937bc200">
 
 
 ```shell
@@ -50,10 +50,10 @@ password: p@ssw0rdyyl
 ```
 3. Try it yourself 👇 !
 The Greating Page: 
-<img width="1437" alt="image-3" src="https://github.com/oasisnoehub/AImStream/assets/80162775/1174986b-40cd-434c-862e-aa2418b0662b">
+<img width="600" alt="image-3" style="border: .5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/1174986b-40cd-434c-862e-aa2418b0662b">
 
 LLMs Generating Page: 
-<img width="1416" alt="image-4" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f06b9aef-6e6d-4af7-92ae-1ab0e8b2f793">
+<img width="600" alt="image-4" style="border: .5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f06b9aef-6e6d-4af7-92ae-1ab0e8b2f793">
 
 Here is the demo video : )
 
