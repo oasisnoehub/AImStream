@@ -17,6 +17,7 @@ NUM_IMAGES_PER_ROW = 3
 
 # Initialize the client with local server settings
 client = OpenAI(base_url="http://localhost:1234/v1", api_key="lm-studio")
+
 model_system_request = "From now on, act as a tech professional. Pay close attention to user questions. Provide outputs that users would regarding the input."
 # Functions
 def check_password():
