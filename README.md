@@ -49,11 +49,12 @@ username: admin
 password: p@ssw0rdyyl
 ```
 3. Try it yourself 👇 !
-<div style="display: flex; justify-content: space-between;">
-  <img width="800" alt="image-3" style="border: 5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/1174986b-40cd-434c-862e-aa2418b0662b">
-  ---
-  <img width="800" alt="image-4" style="border: 5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f06b9aef-6e6d-4af7-92ae-1ab0e8b2f793">
-</div>
+
+Greating Page: 
+<img width="1200" alt="image-3" style="border: 5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/1174986b-40cd-434c-862e-aa2418b0662b">
+  
+LLMs Generating Page:
+<img width="1200" alt="image-4" style="border: 5px solid;" src="https://github.com/oasisnoehub/AImStream/assets/80162775/f06b9aef-6e6d-4af7-92ae-1ab0e8b2f793">
 
 Here is the demo video : )
 
